@@ -1,0 +1,5 @@
+       core % modelName = 'mpas'
+       core % coreName = 'init_atmosphere'
+       core % modelVersion = '5.2'
+       core % executableName = 'init_atmosphere_model'
+       core % git_version = 'v5.2-dirty'
