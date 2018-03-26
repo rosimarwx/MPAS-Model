@@ -72,8 +72,6 @@ module init_atm_cases
       integer, pointer :: nCells
       integer, pointer :: nEdges
       integer, pointer :: nVertLevels
-      integer, pointer :: nOznLevels
-
 
       call mpas_pool_get_config(domain % blocklist % configs, 'config_init_case', config_init_case)
 
@@ -113,15 +111,12 @@ module init_atm_cases
             call mpas_pool_get_subpool(block_ptr % structs, 'state', state)
             call mpas_pool_get_subpool(block_ptr % structs, 'diag', diag)
             call mpas_pool_get_subpool(block_ptr % structs, 'fg', fg)
-            call mpas_pool_get_subpool(block_ptr % structs, 'diag_physics', diag_physics)
-            call mpas_pool_get_subpool(block_ptr % structs, 'atm_input', atm_input)
 
             call mpas_pool_get_dimension(block_ptr % dimensions, 'nCells', nCells)
             call mpas_pool_get_dimension(block_ptr % dimensions, 'nVertLevels', nVertLevels)
-            call mpas_pool_get_dimension(block_ptr % dimensions, 'nOznLevels', nOznLevels)
 
             write(0,*) ' calling test case setup '
-            call init_atm_case_ape(mesh, nCells, nVertLevels, nOznLevels, state, diag, fg, diag_physics, atm_input, block_ptr % configs, config_init_case)
+            call init_atm_case_ape(mesh, nCells, nVertLevels, state, diag, fg, block_ptr % configs, config_init_case)
             call decouple_variables(mesh, nCells, nVertLevels, state, diag)
             write(0,*) ' returned from test case setup '
             block_ptr => block_ptr % next
@@ -313,7 +308,7 @@ module init_atm_cases
 
 !----------------------------------------------------------------------------------------------------------
 
-   subroutine init_atm_case_ape(mesh, nCells, nVertLevels, nOznLevels, state, diag, fg, diag_physics, atm_input, configs, test_case)
+   subroutine init_atm_case_ape(mesh, nCells, nVertLevels, state, diag, fg, configs, test_case)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! Setup aquaplanet test case from Neale and Hoskins 2000 (QJRMS)
    ! This requires symmetric ozone
@@ -322,12 +317,10 @@ module init_atm_cases
       implicit none
 
       type (mpas_pool_type), intent(inout) :: mesh
-      integer, intent(in) :: nCells, nVertLevels, nOznLevels
+      integer, intent(in) :: nCells, nVertLevels
       type (mpas_pool_type), intent(inout) :: state
       type (mpas_pool_type), intent(inout) :: diag
       type (mpas_pool_type), intent(inout) :: fg
-      type (mpas_pool_type), intent(inout) :: diag_physics
-      type (mpas_pool_type), intent(inout) :: atm_input
       type (mpas_pool_type), intent(in) :: configs
       integer, intent(in) :: test_case
 
@@ -352,10 +345,6 @@ module init_atm_cases
       real (kind=RKIND), dimension(:,:,:), pointer :: zb, zb3
       real (kind=RKIND), dimension(:,:,:), pointer :: deriv_two
 
-      !ozone variables
-      real (kind=RKIND), dimension(:,:), pointer :: pin
-      real (kind=RKIND), dimension(:,:), pointer :: o3clim
-      
 !.. initialization of moisture:
       integer, pointer :: index_qv
       real (kind=RKIND), parameter :: rh_max = 0.40 ! Maximum relative humidity
@@ -435,26 +424,7 @@ module init_atm_cases
       integer :: nz_sounding, istat, kk
       character(len=256) :: soundingstr
 
-      !variables for ozone levels calc
-      !parameter (jg=64,kg=59,lg=kg+1)
-      !dimension glat(jg),galt(kg),gprs(kg),gdat(jg,kg)
-      !               ,gali(lg),gpri(lg)
-      character finame*80,label*120
-
-      integer :: lato3d  != 64  ! number of data latitudinal grid
-      integer :: layo3d  != 59  ! number of data vertical layers
-      integer :: lvlo3d  != 60  ! number of data vertical layer interfaces
-      real, allocatable :: glat(:)
-      real, allocatable :: gprs(:), galt(:)
-      real, allocatable :: gpri(:), gali(:)
-      real, allocatable :: gdat(:,:)
-      real :: o3vubc, prsubc, altubc
-
-!     o3vubc  =     upper boundary o3 vmr (ppmv)
-!     prsubc  =     upper boundary pressure (mb)
-!     altubc  =     upper boundary altitude (km)
-
-
+      write(0,*) 'reading config variables...'
       call mpas_pool_get_config(configs, 'config_init_case', config_init_case)
       call mpas_pool_get_config(configs, 'config_coef_3rd_order', config_coef_3rd_order)
       call mpas_pool_get_config(configs, 'config_theta_adv_order', config_theta_adv_order)
@@ -463,6 +433,7 @@ module init_atm_cases
       !
       ! Scale all distances and areas from a unit sphere to one with radius sphere_radius
       !
+      write(0,*) 'reading mesh variables...'
       call mpas_pool_get_array(mesh, 'xCell', xCell)
       call mpas_pool_get_array(mesh, 'yCell', yCell)
       call mpas_pool_get_array(mesh, 'zCell', zCell)
@@ -524,6 +495,7 @@ module init_atm_cases
       call mpas_pool_get_array(mesh, 'hx', hx)
       call mpas_pool_get_array(mesh, 'dss', dss)
 
+      write(0,*) 'reading phys variables'
       call mpas_pool_get_array(diag, 'exner_base', pb)
       call mpas_pool_get_array(diag, 'rho_base', rb)
       call mpas_pool_get_array(diag, 'rho_p', rr)
@@ -561,9 +533,6 @@ module init_atm_cases
       call mpas_pool_get_array(fg, 'skintemp', skintemp)
       call mpas_pool_get_array(fg, 'sst', sst)
 
-      call mpas_pool_get_array(diag_physics, 'o3clim', o3clim)
-      call mpas_pool_get_array(atm_input, 'pin', pin)
-
 !.. initialization of moisture:
       scalars(:,:,:) = 0.0
       qsat(:,:)      = 0.0
@@ -589,7 +558,6 @@ module init_atm_cases
 
       write(0,*) ' point 1 in test case setup '
 
-! RRB: commented out this, but I probably need to setup hx to something. What's hx anyways?
 ! RRB: hx = terrain height; aquaplanet means hx = 0. everywhere
 
       hx(:,:) = 0.
@@ -898,51 +866,6 @@ module init_atm_cases
 !            theta(k,iCell) = t(k,iCell) / (1.0 + 1.61 * scalars(index_qv,k,iCell))
 !         end do
 !      end do
-
-      !!!!!!!! Last step: intialize the ozone climatology
-      !!!! First read in ozone. File name: apeo3.dat, source: http://climate.ncas.ac.uk/ape/ape_ozone.html
-      
- !     finame      ='APE-Ozone.T42-Lat-Alt'
-      open (unit=45,file='apeo3.dat',status='old')
-
-      read (45,'(i3)') lato3d
-
-      read (45,'(i3)') layo3d
-      lvlo3d = 1 + layo3d
-
-      read (45,'(3(1pe12.5))') o3vubc,prsubc,altubc
-
-      allocate(glat(lato3d))
-      allocate(gprs(layo3d))
-      allocate(galt(layo3d))
-      allocate(gpri(lvlo3d))
-      allocate(gali(lvlo3d))
-      allocate(gdat(lato3d,layo3d))
-
-      write(0,*) 'Reading ozone data...'
-
-      read (45,'(a)') label   ! grid latitudes (deg) --------->
-      read (45,'(10(1pe12.5))') (glat(j),j=1,lato3d)
-      read (45,'(a)') label   ! layer pressure (mb) ---------->
-      read (45,'(10(1pe12.5))') (gprs(k),k=1,layo3d)
-
-      read (45,'(a)') label   ! layer altitude (km) ---------->
-      read (45,'(10(1pe12.5))') (galt(k),k=1,layo3d)
-
-      read (45,'(a)') label   ! interface pressure (mb) ------>
-      read (45,'(10(1pe12.5))') (gpri(k),k=1,lvlo3d)
-
-      read (45,'(a)') label   ! interface altitude (km) ------>
-      read (45,'(10(1pe12.5))') (gali(k),k=1,lvlo3d)
-
-      read (45,'(a)') label   ! o3 vmr (ppmv) lat-alt
-      read (45,'(10(1pe12.5))') ((gdat(j,k),j=1,lato3d),k=1,layo3d)
-      close(45)
-
-      !Convert from ppmv to mol/mol; 1 ppmv = 1e-6 mol/mol
-      gdat = gdat*1.e-6
-
-      write(0,*) gdat
 
    end subroutine init_atm_case_ape
 

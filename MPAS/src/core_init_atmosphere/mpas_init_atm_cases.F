@@ -72,8 +72,6 @@ module init_atm_cases
       integer, pointer :: nCells
       integer, pointer :: nEdges
       integer, pointer :: nVertLevels
-      integer, pointer :: nOznLevels
-
 
       call mpas_pool_get_config(domain % blocklist % configs, 'config_init_case', config_init_case)
 
@@ -116,10 +114,9 @@ module init_atm_cases
 
             call mpas_pool_get_dimension(block_ptr % dimensions, 'nCells', nCells)
             call mpas_pool_get_dimension(block_ptr % dimensions, 'nVertLevels', nVertLevels)
-            call mpas_pool_get_dimension(block_ptr % dimensions, 'nOznLevels', nOznLevels)
 
             write(0,*) ' calling test case setup '
-            call init_atm_case_ape(mesh, nCells, nVertLevels, nOznLevels, state, diag, fg, block_ptr % configs, config_init_case)
+            call init_atm_case_ape(mesh, nCells, nVertLevels, state, diag, fg, block_ptr % configs, config_init_case)
             call decouple_variables(mesh, nCells, nVertLevels, state, diag)
             write(0,*) ' returned from test case setup '
             block_ptr => block_ptr % next
@@ -311,7 +308,7 @@ module init_atm_cases
 
 !----------------------------------------------------------------------------------------------------------
 
-   subroutine init_atm_case_ape(mesh, nCells, nVertLevels, nOznLevels, state, diag, fg, configs, test_case)
+   subroutine init_atm_case_ape(mesh, nCells, nVertLevels, state, diag, fg, configs, test_case)
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! Setup aquaplanet test case from Neale and Hoskins 2000 (QJRMS)
    ! This requires symmetric ozone
@@ -320,7 +317,7 @@ module init_atm_cases
       implicit none
 
       type (mpas_pool_type), intent(inout) :: mesh
-      integer, intent(in) :: nCells, nVertLevels, nOznLevels
+      integer, intent(in) :: nCells, nVertLevels
       type (mpas_pool_type), intent(inout) :: state
       type (mpas_pool_type), intent(inout) :: diag
       type (mpas_pool_type), intent(inout) :: fg
@@ -561,9 +558,7 @@ module init_atm_cases
 
       write(0,*) ' point 1 in test case setup '
 
-! RRB: commented out this, but I probably need to setup hx to something. What's hx anyways?
-! RRB: hx = terrain height; aquaplanet means hx = 0. everywhere
-
+      !!----- RRB: hx = terrain height; aquaplanet means hx = 0. everywhere -----!!
       hx(:,:) = 0.
 
       !     Metrics for hybrid coordinate and vertical stretching
@@ -572,7 +567,7 @@ module init_atm_cases
       zt = config_ztop
       dz = zt/float(nz1)
 
-!!----- RRB: I probably need this -----!!
+      !!----- RRB: this code is the same as in the jw test case -----!!
 
       do k=1,nz
 
@@ -670,13 +665,15 @@ module init_atm_cases
 
       write(0,*) ' grid metrics setup complete '
 
+      !!----- RRB: the following code was modified to implement a basic aquaplanet -----!!
+
       ! Initial atmosphere at rest
       u(:,:) = 0.
       v(:,:) = 0.
       w(:,:) = 0.
 
-     !Now let's read theta and qv sounding from a file
-     !First let's see how many levels do we have (rows = levels)
+     !Read vertical profile of theta and qv from a sounding file
+     !First let's see how many levels we have (rows = levels)
       write(0,*) 'reading sounding...'
       open(unit=31,file='sounding.input',status='old')
       nz_sounding=0
@@ -748,7 +745,7 @@ module init_atm_cases
          theta(k,:) = t(k,:) / (1.0 + 1.61 * scalars(index_qv,k,:))
 
       end do
-!
+
  
       do i=1, nCells
        ! Prescribe SST as a function of latitude
@@ -765,8 +762,6 @@ module init_atm_cases
       202 format(2i6,10(1x,e15.8))
       203 format(i6,10(1x,e15.8))
 
-       !RRB: surface pressure and mixing ratio are diagnostics...
-
         !calculation of surface pressure:
         surface_pressure(i) = 0.5*dzw(1)*gravity                                    &
                         * (1.25*(rr(1,i) + rb(1,i)) * (1. + scalars(index_qv,1,i))  &
@@ -776,16 +771,13 @@ module init_atm_cases
       end do  ! end loop over cells
 
 
-!---RRB: I don't need this unless I add random IC perturbations
-!      lat_pert = latitude_pert*pii/180.
-!      lon_pert = longitude_pert*pii/180.
+
+      !!-----The following code is the same as in the jw test case -----!!
 
       do iEdge=1,nEdges
       !
       ! Generate rotated Coriolis field
       !
-
-      !RRB - do I need this? Leaving all this for now...
 
          fEdge(iEdge) = 2.0 * omega_e * &
                                        ( -cos(lonEdge(iEdge)) * cos(latEdge(iEdge)) * sin(alpha_grid) + &
@@ -862,14 +854,6 @@ module init_atm_cases
 
         write(0,*) ' i, psurf, lat ',i,psurf,latCell(i)*180./3.1415828
       end do
-
-!      ! Compute rho and theta from rho_zz and theta_m
-!      do iCell=1,nCells
-!         do k=1,nVertLevels
-!            rho(k,iCell) = rho_zz(k,iCell) * zz(k,iCell)
-!            theta(k,iCell) = t(k,iCell) / (1.0 + 1.61 * scalars(index_qv,k,iCell))
-!         end do
-!      end do
 
    end subroutine init_atm_case_ape
 
