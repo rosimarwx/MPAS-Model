@@ -348,10 +348,6 @@ module init_atm_cases
       real (kind=RKIND), dimension(:,:,:), pointer :: zb, zb3
       real (kind=RKIND), dimension(:,:,:), pointer :: deriv_two
 
-      !ozone variables
-      real (kind=RKIND), dimension(:,:), pointer :: pin
-      real (kind=RKIND), dimension(:,:), pointer :: o3clim
-      
 !.. initialization of moisture:
       integer, pointer :: index_qv
       real (kind=RKIND), parameter :: rh_max = 0.40 ! Maximum relative humidity
@@ -431,6 +427,7 @@ module init_atm_cases
       integer :: nz_sounding, istat, kk
       character(len=256) :: soundingstr
 
+      write(0,*) 'reading config variables...'
       call mpas_pool_get_config(configs, 'config_init_case', config_init_case)
       call mpas_pool_get_config(configs, 'config_coef_3rd_order', config_coef_3rd_order)
       call mpas_pool_get_config(configs, 'config_theta_adv_order', config_theta_adv_order)
@@ -439,6 +436,7 @@ module init_atm_cases
       !
       ! Scale all distances and areas from a unit sphere to one with radius sphere_radius
       !
+      write(0,*) 'reading mesh variables...'
       call mpas_pool_get_array(mesh, 'xCell', xCell)
       call mpas_pool_get_array(mesh, 'yCell', yCell)
       call mpas_pool_get_array(mesh, 'zCell', zCell)
@@ -500,6 +498,7 @@ module init_atm_cases
       call mpas_pool_get_array(mesh, 'hx', hx)
       call mpas_pool_get_array(mesh, 'dss', dss)
 
+      write(0,*) 'reading phys variables'
       call mpas_pool_get_array(diag, 'exner_base', pb)
       call mpas_pool_get_array(diag, 'rho_base', rb)
       call mpas_pool_get_array(diag, 'rho_p', rr)
