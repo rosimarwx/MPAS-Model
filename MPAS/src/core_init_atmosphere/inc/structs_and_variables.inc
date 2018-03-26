@@ -5886,44 +5886,6 @@
       call mpas_pool_add_field(newSubPool, 'precipw', r1Ptr)
       call mpas_pool_add_field(block % allFields, 'precipw', r1Ptr)
 
-! Define variable o3clim
-      allocate(r2Ptr(1))
-
-! Setting up time level 1
-      r2Ptr(1) % fieldName = 'o3clim'
-      r2Ptr(1) % isVarArray = .false.
-      r2Ptr(1) % isDecomposed = .true.
-      r2Ptr(1) % hasTimeDimension = .true.
-      r2Ptr(1) % isPersistent = .true.
-      r2Ptr(1) % isActive = .false.
-! Setting up dimensions
-      r2Ptr(1) % dimNames(1) = 'nOznLevels'
-      r2Ptr(1) % dimNames(2) = 'nCells'
-     r2Ptr(1) % defaultValue = 0.0
-     r2Ptr(1) % defaultValue = 0.0
-     nullify(r2Ptr(1) % array)
-      nullify(r2Ptr(1) % next)
-      nullify(r2Ptr(1) % prev)
-      nullify(r2Ptr(1) % sendList)
-      nullify(r2Ptr(1) % recvList)
-      nullify(r2Ptr(1) % copyList)
-      allocate(r2Ptr(1) % attLists(1))
-      allocate(r2Ptr(1) % attLists(1) % attList)
-      r2Ptr(1) % attLists(1) % attList % attName = ''
-      r2Ptr(1) % attLists(1) % attList % attType = -1
-      nullify(r2Ptr(1) % attLists(1) % attList % next)
-      nullify(r2Ptr(1) % attLists(1) % attList % attValueIntA)
-      nullify(r2Ptr(1) % attLists(1) % attList % attValueRealA)
-      call mpas_add_att(r2Ptr(1) % attLists(1) % attList, 'units', 'mol mol^{-1}')
-      call mpas_add_att(r2Ptr(1) % attLists(1) % attList, 'long_name', 'climatological ozone on prescribed pressure levels at '&
-//'current time')
-      r2Ptr(1) % missingValue = MPAS_REAL_FILLVAL
-      r2Ptr(1) % block => block
-
-      r2Ptr(1) % isActive = .true.
-      call mpas_pool_add_field(newSubPool, 'o3clim', r2Ptr)
-      call mpas_pool_add_field(block % allFields, 'o3clim', r2Ptr)
-
 
 
       if (associated(newSubPool)) then
@@ -5935,115 +5897,6 @@
       end if
 
    end subroutine init_atm_generate_pool_diag_physics
-
-
-   subroutine init_atm_generate_pool_atm_input(block, structPool, dimensionPool, packagePool)
-      use mpas_derived_types
-      use mpas_pool_routines
-      use mpas_io_units
-      use mpas_io, only : MPAS_REAL_FILLVAL, MPAS_INT_FILLVAL, MPAS_CHAR_FILLVAL
-      implicit none
-      type (block_type), intent(inout), pointer :: block
-      type (mpas_pool_type), intent(inout) :: structPool
-      type (mpas_pool_type), intent(inout) :: dimensionPool
-      type (mpas_pool_type), intent(in) :: packagePool
-
-      type (field0DReal), dimension(:), pointer :: r0Ptr
-      type (field1DReal), dimension(:), pointer :: r1Ptr
-      type (field2DReal), dimension(:), pointer :: r2Ptr
-      type (field3DReal), dimension(:), pointer :: r3Ptr
-      type (field4DReal), dimension(:), pointer :: r4Ptr
-      type (field5DReal), dimension(:), pointer :: r5Ptr
-      type (field0DInteger), dimension(:), pointer :: i0Ptr
-      type (field1DInteger), dimension(:), pointer :: i1Ptr
-      type (field2DInteger), dimension(:), pointer :: i2Ptr
-      type (field3DInteger), dimension(:), pointer :: i3Ptr
-      type (field0DChar), dimension(:), pointer :: c0Ptr
-      type (field1DChar), dimension(:), pointer :: c1Ptr
-
-      type (mpas_pool_type), pointer :: newSubPool
-      integer :: group_counter
-      logical :: group_started
-      integer :: group_start
-      integer :: index_counter
-      integer, pointer :: const_index
-
-      logical, pointer :: initial_condsActive
-      logical, pointer :: sfc_updateActive
-      logical, pointer :: gwd_stage_inActive
-      logical, pointer :: vertical_stage_inActive
-      logical, pointer :: vertical_stage_outActive
-      logical, pointer :: met_stage_inActive
-      logical, pointer :: met_stage_outActive
-
-
-      integer :: numConstituents
-
-      nullify(newSubPool)
-      group_counter = -1
-      group_started = .false.
-      group_start = -1
-      call mpas_pool_get_package(packagePool, 'initial_condsActive', initial_condsActive)
-      call mpas_pool_get_package(packagePool, 'sfc_updateActive', sfc_updateActive)
-      call mpas_pool_get_package(packagePool, 'gwd_stage_inActive', gwd_stage_inActive)
-      call mpas_pool_get_package(packagePool, 'vertical_stage_inActive', vertical_stage_inActive)
-      call mpas_pool_get_package(packagePool, 'vertical_stage_outActive', vertical_stage_outActive)
-      call mpas_pool_get_package(packagePool, 'met_stage_inActive', met_stage_inActive)
-      call mpas_pool_get_package(packagePool, 'met_stage_outActive', met_stage_outActive)
-
-      allocate(newSubPool)
-      call mpas_pool_create_pool(newSubPool)
-      call mpas_pool_add_subpool(structPool, 'atm_input', newSubPool)
-      call mpas_pool_add_subpool(block % allStructs, 'atm_input', newSubPool)
-
-! Define variable pin
-      allocate(r1Ptr(1))
-
-! Setting up time level 1
-      r1Ptr(1) % fieldName = 'pin'
-      r1Ptr(1) % isVarArray = .false.
-      r1Ptr(1) % isDecomposed = .false.
-      r1Ptr(1) % hasTimeDimension = .false.
-      r1Ptr(1) % isPersistent = .true.
-      r1Ptr(1) % isActive = .false.
-! Setting up dimensions
-      r1Ptr(1) % dimNames(1) = 'nOznLevels'
-     r1Ptr(1) % defaultValue = 0.0
-     r1Ptr(1) % defaultValue = 0.0
-     nullify(r1Ptr(1) % array)
-      nullify(r1Ptr(1) % next)
-      nullify(r1Ptr(1) % prev)
-      nullify(r1Ptr(1) % sendList)
-      nullify(r1Ptr(1) % recvList)
-      nullify(r1Ptr(1) % copyList)
-      allocate(r1Ptr(1) % attLists(1))
-      allocate(r1Ptr(1) % attLists(1) % attList)
-      r1Ptr(1) % attLists(1) % attList % attName = ''
-      r1Ptr(1) % attLists(1) % attList % attType = -1
-      nullify(r1Ptr(1) % attLists(1) % attList % next)
-      nullify(r1Ptr(1) % attLists(1) % attList % attValueIntA)
-      nullify(r1Ptr(1) % attLists(1) % attList % attValueRealA)
-      call mpas_add_att(r1Ptr(1) % attLists(1) % attList, 'units', 'Pa')
-      call mpas_add_att(r1Ptr(1) % attLists(1) % attList, 'long_name', 'fixed pressure levels at which climatological ozone is '&
-//'defined')
-      r1Ptr(1) % missingValue = MPAS_REAL_FILLVAL
-      r1Ptr(1) % block => block
-
-      r1Ptr(1) % isActive = .true.
-      call mpas_pool_add_field(newSubPool, 'pin', r1Ptr)
-      call mpas_pool_add_field(block % allFields, 'pin', r1Ptr)
-
-
-
-      if (associated(newSubPool)) then
-         call mpas_pool_add_config(newSubPool, 'on_a_sphere', block % domain % on_a_sphere)
-         call mpas_pool_add_config(newSubPool, 'sphere_radius', block % domain % sphere_radius)
-         call mpas_pool_add_config(newSubPool, 'is_periodic', block % domain % is_periodic)
-         call mpas_pool_add_config(newSubPool, 'x_period', block % domain % x_period)
-         call mpas_pool_add_config(newSubPool, 'y_period', block % domain % y_period)
-      end if
-
-   end subroutine init_atm_generate_pool_atm_input
 
 
    subroutine init_atm_generate_structs(block, structPool, dimensionPool, packagePool)
@@ -6064,7 +5917,5 @@
       call init_atm_generate_pool_diag(block, structPool, dimensionPool, packagePool)
 
       call init_atm_generate_pool_diag_physics(block, structPool, dimensionPool, packagePool)
-
-      call init_atm_generate_pool_atm_input(block, structPool, dimensionPool, packagePool)
 
    end subroutine init_atm_generate_structs

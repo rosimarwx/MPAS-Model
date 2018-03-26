@@ -29,13 +29,11 @@
       integer, pointer :: nFGSoilLevels
       integer, pointer :: nVertLevelsP1
       integer, pointer :: nMonths
-      integer, pointer :: nOznLevels
       integer, pointer :: config_nvertlevels
       integer, pointer :: config_nsoillevels
       integer, pointer :: config_nfglevels
       integer, pointer :: config_nfgsoillevels
       integer, pointer :: config_months
-      integer, pointer :: noznlev
 
       iErr = 0
       errLevel = mpas_pool_get_error_level()
@@ -51,8 +49,6 @@
       call mpas_pool_get_config(configPool, 'config_nfgsoillevels', config_nfgsoillevels)
       nullify(config_months)
       call mpas_pool_get_config(configPool, 'config_months', config_months)
-      nullify(noznlev)
-      call mpas_pool_get_config(configPool, 'noznlev', noznlev)
 
       nullify(nCells)
       call mpas_pool_get_dimension(dimensionPool, 'nCells', nCells)
@@ -88,8 +84,6 @@
       call mpas_pool_get_dimension(dimensionPool, 'nVertLevelsP1', nVertLevelsP1)
       nullify(nMonths)
       call mpas_pool_get_dimension(dimensionPool, 'nMonths', nMonths)
-      nullify(nOznLevels)
-      call mpas_pool_get_dimension(dimensionPool, 'nOznLevels', nOznLevels)
 
 write(stderrUnit,'(a)') 'Assigning remaining dimensions from definitions in Registry.xml ...'
       if ( .not. associated(nCells) ) then
@@ -236,16 +230,6 @@ write(stderrUnit,'(a,a20,a,i8,a)') '       ', 'nMonths', ' =', config_months, ' 
          call mpas_pool_add_dimension(dimensionPool, 'nMonths', nMonths)
           else if ( nMonths == MPAS_MISSING_DIM ) then
          nMonths = config_months
-          end if
-
-      call mpas_pool_get_dimension(dimensionPool, 'nOznLevels', nOznLevels)
-      if ( .not. associated(nOznLevels) ) then
-         allocate(nOznLevels)
-         nOznLevels = noznlev
-write(stderrUnit,'(a,a20,a,i8,a)') '       ', 'nOznLevels', ' =', noznlev, ' (noznlev)'
-         call mpas_pool_add_dimension(dimensionPool, 'nOznLevels', nOznLevels)
-          else if ( nOznLevels == MPAS_MISSING_DIM ) then
-         nOznLevels = noznlev
           end if
 
 write(stderrUnit,*) ' '

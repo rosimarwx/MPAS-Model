@@ -23,7 +23,6 @@
                 <dim name="nFGSoilLevels"      definition="namelist:config_nfgsoillevels"/>
                 <dim name="nVertLevelsP1"      definition="nVertLevels+1"/>
                 <dim name="nMonths"            definition="namelist:config_months"/>
-                <dim name="nOznLevels"         definition="namelist:noznlev"/>
         </dims>
 
 
@@ -104,10 +103,6 @@
                      units="-"
                      description="The number of months in a year"
                      possible_values="Positive integer values"/>
-                <nml_option name="noznlev" type="integer" default_value="59" in_defaults="false"
-                     units="-"
-                     description="number of prescribed pressure levels for input climatological ozone volume mixing ratios"
-                     possible_values="Positive integers"/>
         </nml_record>
 
         <nml_record name="data_sources" in_defaults="true">
@@ -752,13 +747,6 @@
 
         <var_struct name="diag_physics" time_levs="1">
                 <var name="precipw"                           type="real"     dimensions="nCells Time"/>
-                <var name="o3clim" type="real" dimensions="nOznLevels nCells Time" units="mol mol^{-1}"
-                     description="climatological ozone on prescribed pressure levels at current time"/>
         </var_struct>
 
-                <!-- Additional variable for ozone levels -->
-        <var_struct name="atm_input" time_levs="1">
-                <var name="pin" type="real"  dimensions="nOznLevels" units="Pa"
-                     description="fixed pressure levels at which climatological ozone is defined"/>
-        </var_struct>
 </registry>

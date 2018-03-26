@@ -86,15 +86,13 @@
       integer :: config_nfglevels = 38
       integer :: config_nfgsoillevels = 4
       integer :: config_months = 12
-      integer :: noznlev = 59
 
       namelist /dimensions/ &
          config_nvertlevels, &
          config_nsoillevels, &
          config_nfglevels, &
          config_nfgsoillevels, &
-         config_months, &
-         noznlev
+         config_months
       if (dminfo % my_proc_id == IO_NODE) then
          rewind(unitNumber)
          read(unitNumber, dimensions, iostat=ierr)
@@ -107,7 +105,6 @@
          call mpas_dmpar_bcast_int(dminfo, config_nfglevels)
          call mpas_dmpar_bcast_int(dminfo, config_nfgsoillevels)
          call mpas_dmpar_bcast_int(dminfo, config_months)
-         call mpas_dmpar_bcast_int(dminfo, noznlev)
          if (ierr < 0) then
             write(stderrUnit,*) '*** Encountered an issue while attempting to read namelist record dimensions'
             write(stderrUnit,*) '    The following values will be used for variables in this record:'
@@ -117,7 +114,6 @@
             write(stderrUnit,*) '        config_nfglevels = ', config_nfglevels
             write(stderrUnit,*) '        config_nfgsoillevels = ', config_nfgsoillevels
             write(stderrUnit,*) '        config_months = ', config_months
-            write(stderrUnit,*) '        noznlev = ', noznlev
             write(stderrUnit,*) ' '
          end if
       else if (ierr > 0) then
@@ -130,7 +126,6 @@
       call mpas_pool_add_config(configPool, 'config_nfglevels', config_nfglevels)
       call mpas_pool_add_config(configPool, 'config_nfgsoillevels', config_nfgsoillevels)
       call mpas_pool_add_config(configPool, 'config_months', config_months)
-      call mpas_pool_add_config(configPool, 'noznlev', noznlev)
 
    end subroutine init_atm_setup_nmlrec_dimensions
 
