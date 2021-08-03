@@ -3,13 +3,13 @@
 <!-- ******************************* -->
 
 <dims>
-        <dim name="t_iso_levels"         definition="40"
+        <dim name="t_iso_levels"         definition="30"
              description="Isobaric levels to which temperature will be vertically interpolated"/>
 
-        <dim name="z_iso_levels"         definition="40"
+        <dim name="z_iso_levels"         definition="30"
              description="Isobaric levels to which height will be vertically interpolated"/>
 
-        <dim name="u_iso_levels"         definition="40"
+        <dim name="u_iso_levels"         definition="30"
              description="Isobaric levels to which winds will be vertically interpolated"/>
 </dims>
 
@@ -147,8 +147,8 @@
         <var name="vorticity_200hPa" type="real" dimensions="nVertices Time" units="s^{-1}"
              description="Relative vorticity vertically interpolated to 200 hPa"/>
 
-        <var name="vorticity_250hPa" type="real" dimensions="nVertices Time" units="s^{-1}"
-             description="Relative vorticity vertically interpolated to 250 hPa"/>
+        <var name="vorticity_300hPa" type="real" dimensions="nVertices Time" units="s^{-1}"
+             description="Relative vorticity vertically interpolated to 300 hPa"/>
 
         <var name="vorticity_500hPa" type="real" dimensions="nVertices Time" units="s^{-1}"
              description="Relative vorticity vertically interpolated to 500 hPa"/>

@@ -32,7 +32,7 @@ module isobaric_diagnostics
                need_uzonal_200, need_uzonal_250, need_uzonal_500, need_uzonal_700, need_uzonal_850, need_uzonal_925, &
                need_umeridional_200, need_umeridional_250, need_umeridional_500, need_umeridional_700, need_umeridional_850, need_umeridional_925, &
                need_w_200, need_w_250, need_w_500, need_w_700, need_w_850, need_w_925, &
-               need_vorticity_200, need_vorticity_250, need_vorticity_500, need_vorticity_700, need_vorticity_850, need_vorticity_925, &
+               need_vorticity_200, need_vorticity_300, need_vorticity_500, need_vorticity_700, need_vorticity_850, need_vorticity_925, &
                need_t_isobaric, need_z_isobaric, need_u_isobaric, need_qv_isobaric, need_rh_isobaric, need_w_isobaric, need_meanT_500_300, need_rhod_isobaric
     logical :: need_temp, need_relhum, need_dewpoint, need_w, need_uzonal, need_umeridional, need_vorticity, need_height
     !!! Added by RRB for TAHPEX: integrated vapor transport !!!
@@ -233,9 +233,9 @@ module isobaric_diagnostics
         need_vorticity_200 = MPAS_field_will_be_written('vorticity_200hPa')
         need_vorticity = need_vorticity .or. need_vorticity_200
         need_any_diags = need_any_diags .or. need_vorticity_200
-        need_vorticity_250 = MPAS_field_will_be_written('vorticity_250hPa')
-        need_vorticity = need_vorticity .or. need_vorticity_250
-        need_any_diags = need_any_diags .or. need_vorticity_250
+        need_vorticity_300 = MPAS_field_will_be_written('vorticity_300hPa')
+        need_vorticity = need_vorticity .or. need_vorticity_300
+        need_any_diags = need_any_diags .or. need_vorticity_300
         need_vorticity_500 = MPAS_field_will_be_written('vorticity_500hPa')
         need_vorticity = need_vorticity .or. need_vorticity_500
         need_any_diags = need_any_diags .or. need_vorticity_500
@@ -369,7 +369,7 @@ module isobaric_diagnostics
         real (kind=RKIND), dimension(:), pointer :: w_925hPa
        
         real (kind=RKIND), dimension(:), pointer :: vorticity_200hPa
-        real (kind=RKIND), dimension(:), pointer :: vorticity_250hPa
+        real (kind=RKIND), dimension(:), pointer :: vorticity_300hPa
         real (kind=RKIND), dimension(:), pointer :: vorticity_500hPa
         real (kind=RKIND), dimension(:), pointer :: vorticity_700hPa
         real (kind=RKIND), dimension(:), pointer :: vorticity_850hPa
@@ -495,7 +495,7 @@ module isobaric_diagnostics
         call mpas_pool_get_array(diag, 'w_925hPa', w_925hPa)
        
         call mpas_pool_get_array(diag, 'vorticity_200hPa', vorticity_200hPa)
-        call mpas_pool_get_array(diag, 'vorticity_250hPa', vorticity_250hPa)
+        call mpas_pool_get_array(diag, 'vorticity_300hPa', vorticity_300hPa)
         call mpas_pool_get_array(diag, 'vorticity_500hPa', vorticity_500hPa)
         call mpas_pool_get_array(diag, 'vorticity_700hPa', vorticity_700hPa)
         call mpas_pool_get_array(diag, 'vorticity_850hPa', vorticity_850hPa)
@@ -514,9 +514,9 @@ module isobaric_diagnostics
        
         if (need_t_isobaric) then
             !Changed by RRB to add more isobaric levels
-             t_iso_levels(:) = (/1000.0,2000.0,3000.0,5000.0,7000.0,10000.0,15000.0,20000.0,22500.0,25000.0, &
-                                 27500.0, 30000.0, 32500.0, 35000.0, 37500.0, 40000.0, 42500.0, 45000.0, &
-                                 47500.0, 50000.0, 52500.0, 55000.0, 57500.0, 60000.0, 62500.0, 65000.0, &
+             t_iso_levels(:) = (/10000.0, 15000.0, 20000.0, 25000.0, &
+                                 30000.0, 35000.0, 40000.0, 45000.0, 47500.0, &
+                                 50000.0, 52500.0, 55000.0, 57500.0, 60000.0, 62500.0, 65000.0, &
                                  67500.0, 70000.0, 72500.0, 75000.0, 77500.0, 80000.0, 82500.0, 85000.0, &
                                  87500.0, 90000.0, 92500.0, 95000.0, 97500.0, 100000.0/)
              nIsoLevelsT = size(t_iso_levels)
@@ -795,7 +795,7 @@ module isobaric_diagnostics
             if(.not.allocated(press_interp)) allocate(press_interp(nVertices,nIntP) )
             do iVert = 1, nVertices
                press_interp(iVert,1) = 200.0_RKIND
-               press_interp(iVert,2) = 250.0_RKIND
+               press_interp(iVert,2) = 300.0_RKIND
                press_interp(iVert,3) = 500.0_RKIND
                press_interp(iVert,4) = 700.0_RKIND
                press_interp(iVert,5) = 850.0_RKIND
@@ -820,7 +820,7 @@ module isobaric_diagnostics
             enddo
             call interp_tofixed_pressure(nVertices,nVertLevels,nIntP,press_in,field_in,press_interp,field_interp)
             vorticity_200hPa(1:nVertices) = field_interp(1:nVertices,1)
-            vorticity_250hPa(1:nVertices) = field_interp(1:nVertices,2)
+            vorticity_300hPa(1:nVertices) = field_interp(1:nVertices,2)
             vorticity_500hPa(1:nVertices) = field_interp(1:nVertices,3)
             vorticity_700hPa(1:nVertices) = field_interp(1:nVertices,4)
             vorticity_850hPa(1:nVertices) = field_interp(1:nVertices,5)
