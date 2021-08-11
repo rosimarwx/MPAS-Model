@@ -267,7 +267,7 @@ module convective_diagnostics
         real (kind=RKIND), parameter :: dev_motion = 7.5, z_bunker_bot = 0., z_bunker_top = 6000.
         real (kind=RKIND)            :: u_storm, v_storm, u_srh_bot, v_srh_bot, u_srh_top, v_srh_top
         real (kind=RKIND)            :: u_mean, v_mean, u_shear, v_shear, shear_magnitude
-        real (kind=RKIND)            :: b_term, cape_out, cin_out
+        real (kind=RKIND)            :: b_term, cape_out, cin_out, lcl_out 
         real (kind=RKIND), dimension(:), allocatable :: dudz, dvdz, zp
         real (kind=RKIND), dimension(:), allocatable :: zrel, srh
         real (kind=RKIND), dimension(:), allocatable :: p_in, t_in, td_in
@@ -451,7 +451,7 @@ module convective_diagnostics
             end do
 
             !  calculate cape and cin
-            if (need_cape .or. need_cin) then
+            if (need_cape .or. need_cin .or. need_lcl) then
                 do iCell=1, nCellsSolve
                     p_in(1:nVertLevels) = (pressure_p(1:nVertLevels,iCell) + pressure_base(1:nVertLevels,iCell)) / 100.0_RKIND
                     t_in(1:nVertLevels) = temperature(1:nVertLevels,iCell) - 273.15_RKIND
@@ -463,10 +463,11 @@ module convective_diagnostics
                  !                      /(17.625-log(relhum(k,iCell))-((17.625*t_in(k))/(243.04+t_in(k)))) 
                  !   end do
 
-                    call getcape( nVertLevels, p_in, t_in, td_in, cape_out, cin_out )
+                    call getcape( nVertLevels, p_in, t_in, td_in, cape_out, cin_out , lcl_out)
 
                     cape(iCell) = cape_out
                     cin(iCell) = cin_out
+                    lcl(iCell) = lcl_out 
 
                 end do
             end if
@@ -592,12 +593,12 @@ module convective_diagnostics
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !-----------------------------------------------------------------------
 
-    subroutine getcape( nk , p_in , t_in , td_in, cape , cin )
+    subroutine getcape( nk , p_in , t_in , td_in, cape , cin , zlcl)
     implicit none
 
     integer, intent(in) :: nk
     real (kind=RKIND), dimension(nk), intent(in) :: p_in,t_in,td_in
-    real (kind=RKIND), intent(out) :: cape,cin
+    real (kind=RKIND), intent(out) :: cape,cin,zlcl
 
 !-----------------------------------------------------------------------
 !
@@ -631,6 +632,7 @@ module convective_diagnostics
 !
 !            cin - Convective Inhibition (J/kg) (real)
 !
+!            zlcl - Lifted Condensation Level (m) (real) ! added by RRB
 !-----------------------------------------------------------------------
 !  User options:
 
@@ -843,6 +845,10 @@ module convective_diagnostics
     t2   = th2*pi2
     b2   = g*( thv2-thv(kmax) )/thv(kmax)
   endif
+
+ !get LCL using the simple formulation of Espy (1836), later revise by Lawrence (2005)
+  zlcl = 0.0
+  zlcl = z(kmax)+(125.0)*(t(kmax)-td(kmax))  
 
     ql2 = 0.0
     qi2 = 0.0
