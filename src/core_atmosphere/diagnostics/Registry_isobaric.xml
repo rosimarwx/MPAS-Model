@@ -3,13 +3,13 @@
 <!-- ******************************* -->
 
 <dims>
-        <dim name="t_iso_levels"         definition="30"
+        <dim name="t_iso_levels"         definition="40"
              description="Isobaric levels to which temperature will be vertically interpolated"/>
 
-        <dim name="z_iso_levels"         definition="30"
+        <dim name="z_iso_levels"         definition="40"
              description="Isobaric levels to which height will be vertically interpolated"/>
 
-        <dim name="u_iso_levels"         definition="30"
+        <dim name="u_iso_levels"         definition="40"
              description="Isobaric levels to which winds will be vertically interpolated"/>
 </dims>
 
