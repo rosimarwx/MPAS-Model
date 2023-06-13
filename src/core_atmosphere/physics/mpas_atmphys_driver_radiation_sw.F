@@ -318,6 +318,7 @@
 
 !local pointers:
  logical,pointer:: config_o3climatology
+ logical,pointer:: config_equinox
  character(len=StrKIND),pointer:: radt_sw_scheme
  character(len=StrKIND),pointer:: microp_scheme
  logical,pointer:: config_microp_re
@@ -333,6 +334,7 @@
 !-----------------------------------------------------------------------------------------------------------------
 
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
+ call mpas_pool_get_config(configs,'config_equinox',config_equinox)
  call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme      )
  call mpas_pool_get_config(configs,'config_microp_scheme' ,microp_scheme       )
  call mpas_pool_get_config(configs,'config_microp_re'     ,config_microp_re    )
@@ -460,7 +462,7 @@
        enddo
 
        !ozone volume mixing ratio:
-       if(config_o3climatology) then
+       if(config_o3climatology .or. config_equinox) then
           do k = 1, num_oznLevels
              pin_p(k) = pin(k)
           enddo
@@ -697,6 +699,7 @@
 
 !local pointers:
  logical,pointer:: config_o3climatology
+ logical,pointer:: config_equinox
  character(len=StrKIND),pointer:: radt_sw_scheme
 
 !local variables:
@@ -707,6 +710,7 @@
 !call mpas_log_write(' --- enter subroutine driver_radiation_sw: $i',intArgs=(/itimestep/))
 
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
+ call mpas_pool_get_config(configs,'config_equinox',config_equinox)
  call mpas_pool_get_config(configs,'config_radt_sw_scheme',radt_sw_scheme      )
 
  xtime_m = xtime_s/60.
@@ -719,7 +723,12 @@
 !$OMP SINGLE
 !... calculates solar declination:
 !call radconst(declin,solcon,julday,degrad,dpd)
- call radconst(declin,solcon,curr_julday,degrad,dpd)
+ if (config_equinox) then
+   declin=0.
+   solcon=solcon_0
+ else
+   call radconst(declin,solcon,curr_julday,degrad,dpd)
+ end if
 !call mpas_log_write('     ITIMESTEP   = $i', intArgs=(/itimestep/))
 !call mpas_log_write('     YEAR        = $i', intArgs=(/year/))
 !call mpas_log_write('     JULDAY      = $i', intArgs=(/julday/))
@@ -738,7 +747,7 @@
 
     case ("rrtmg_sw")
        o3input = 0
-       if(config_o3climatology) o3input = 2
+       if(config_o3climatology .or. config_equinox) o3input = 2
 
        call mpas_timer_start('RRTMG_sw')
        call rrtmg_swrad( &

@@ -92,6 +92,8 @@
 ! * since we removed the local variable radt_lw_scheme from mpas_atmphys_vars.F, now defines radt_lw_scheme
 !   as a pointer to config_radt_lw_scheme.
 !   Laura D. Fowler (laura@ucar.edu) / 2917-02-16.
+! * added options to have perpetual equinox, i.e., time-fixed solar constant and declination angle=0
+!   Rosimar Rios-Berrios (rberrios@ucar.edu) / 2023-05-13
 
 
  contains
@@ -318,6 +320,7 @@
 
 !local pointers:
  logical,pointer:: config_o3climatology
+ logical,pointer:: config_equinox
  character(len=StrKIND),pointer:: radt_lw_scheme
  character(len=StrKIND),pointer:: microp_scheme
  logical,pointer:: config_microp_re
@@ -338,6 +341,7 @@
 !-----------------------------------------------------------------------------------------------------------------
 
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
+ call mpas_pool_get_config(configs,'config_equinox',config_equinox)
  call mpas_pool_get_config(configs,'config_radt_lw_scheme',radt_lw_scheme      )
  call mpas_pool_get_config(configs,'config_microp_scheme' ,microp_scheme       )
  call mpas_pool_get_config(configs,'config_microp_re'     ,config_microp_re    )
@@ -470,7 +474,7 @@
        enddo
        enddo
 
-       if(config_o3climatology) then
+       if(config_o3climatology .or. config_equinox) then
           !ozone mixing ratio:
           do k = 1, num_oznLevels
              pin_p(k) = pin(k)
@@ -828,6 +832,7 @@
 
 !local pointers:
  logical,pointer:: config_o3climatology
+ logical,pointer:: config_equinox
  character(len=StrKIND),pointer:: radt_lw_scheme
 
 !local variables:
@@ -838,6 +843,7 @@
 !call mpas_log_write(' --- enter subroutine driver_radiation_lw: ')
 
  call mpas_pool_get_config(configs,'config_o3climatology' ,config_o3climatology)
+ call mpas_pool_get_config(configs,'config_equinox',config_equinox)
  call mpas_pool_get_config(configs,'config_radt_lw_scheme',radt_lw_scheme      )
 
 !copy MPAS arrays to local arrays:
@@ -848,7 +854,7 @@
 
     case ("rrtmg_lw")
        o3input = 0
-       if(config_o3climatology) o3input = 2
+       if(config_o3climatology  .or. config_equinox) o3input = 2
 
        call mpas_timer_start('RRTMG_lw')
        call rrtmg_lwrad( &
@@ -881,7 +887,12 @@
 ! are global variables in mpas_atmphys_vars.F and race conditions may occur otherwise!
 !$OMP SINGLE
        !... calculates solar declination:
-       call radconst(declin,solcon,curr_julday,degrad,dpd)
+       if (config_equinox) then
+         solcon = solcon_0
+         declin = 0.
+       else
+         call radconst(declin,solcon,curr_julday,degrad,dpd)
+       end if
 !$OMP END SINGLE
 
 !... convert the radiation time_step to minutes:
