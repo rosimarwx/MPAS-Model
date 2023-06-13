@@ -144,10 +144,10 @@ ifort:
 	"CC_SERIAL = icc" \
 	"CXX_SERIAL = icpc" \
 	"FFLAGS_PROMOTION = -real-size 64" \
-	"FFLAGS_OPT = -O3 -convert big_endian -free -align array64byte" \
-	"CFLAGS_OPT = -O3" \
-	"CXXFLAGS_OPT = -O3" \
-	"LDFLAGS_OPT = -O3" \
+	"FFLAGS_OPT = -O3 -march=core-avx2 -convert big_endian -free -align array64byte" \
+	"CFLAGS_OPT = -O3 -march=core-avx2" \
+	"CXXFLAGS_OPT = -O3 -march=core-avx2" \
+	"LDFLAGS_OPT = -O3 -march=core-avx2" \
 	"FFLAGS_DEBUG = -g -convert big_endian -free -CU -CB -check all -fpe0 -traceback" \
 	"CFLAGS_DEBUG = -g -traceback" \
 	"CXXFLAGS_DEBUG = -g -traceback" \
