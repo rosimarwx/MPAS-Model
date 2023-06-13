@@ -815,10 +815,9 @@ module init_atm_cases
 
         ! Code below is for SST profile as in Bellinger et al. (2015)
         phi = phi*45./atan(1.)
-        ! 01/18/2022 changed the peak SST from 28.5 to 29.5
-        if (phi .ge. 15.-70. .and. phi .le. 15.+70.) then
-          sst(i) = 273.15+29.5*( 1.-0.5*(sin( pii*(phi-15.)/140.)**2. +&
-                   sin(pii * (phi-15.)/140.)**4. ) ) 
+        if (phi .ge. 10.-70. .and. phi .le. 10.+70.) then
+          sst(i) = 273.15+28.5*( 1.-0.5*(sin( pii*(phi-10.)/140.)**2. +&
+                   sin(pii * (phi-10.)/140.)**4. ) ) 
         end if
 
         skintemp(i) = sst(i) !skin temperature set as SST

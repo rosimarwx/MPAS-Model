@@ -10935,7 +10935,9 @@ use module_wrf_error
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols
 ! icld = 10, input total aerosol optical depth (tauaer) directly
-      iaer = 10
+      ! RRB changed to 0 to not include aerosols in the radiation
+      ! calculation for the aquaplanet
+      iaer = 0
 
 ! Call model and data initialization, compute lookup tables, perform
 ! reduction of g-points from 256 to 140 for input absorption coefficient 
