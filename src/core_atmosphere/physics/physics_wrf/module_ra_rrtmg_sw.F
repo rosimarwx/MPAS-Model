@@ -9876,9 +9876,10 @@ CONTAINS
                        noznlevels,pin,o3clim,gsw,swcf,rthratensw,      &
                        has_reqc,has_reqi,has_reqs,re_cloud,            &
                        re_ice,re_snow,                                 &
-                       swupt, swuptc, swdnt, swdntc,                   &
-                       swupb, swupbc, swdnb, swdnbc,                   &
+                       swupt,swuptc,swdnt,swdntc,                      &
+                       swupb,swupbc,swdnb,swdnbc,                      &
                        swupflx, swupflxc, swdnflx, swdnflxc,           &
+                       swddir,swddni,swddif,                           &
                        ids,ide, jds,jde, kds,kde,                      & 
                        ims,ime, jms,jme, kms,kme,                      &
                        its,ite, jts,jte, kts,kte                       &
@@ -9919,6 +9920,8 @@ CONTAINS
  real,intent(inout),dimension(ims:ime,kms:kme,jms:jme):: rthratensw
 
 !--- output arguments:
+  real,intent(out),dimension(ims:ime,jms:jme),optional:: &
+     swddir,swddni,swddif
   real,intent(out),dimension(ims:ime,kms:kme+2,jms:jme ),optional:: &
      swupflx,swupflxc,swdnflx,swdnflxc
 
@@ -10412,6 +10415,12 @@ CONTAINS
              swupbc(i,j) = swuflxc(1,1)
              swdnb(i,j)  = swdflx(1,1)
              swdnbc(i,j) = swdflxc(1,1)
+          endif
+
+          if(present(swddir) .and. present(swddni) .and. present(swddif)) then
+             swddir(i,j)  = swdkdir(1,1)          ! jararias 2013/08/10
+             swddni(i,j)  = swddir(i,j) / coszrs  ! jararias 2013/08/10
+             swddif(i,j)  = swdkdif(1,1)          ! jararias 2013/08/10
           endif
 
           if(present (swupflx)) then
